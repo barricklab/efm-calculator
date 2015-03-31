@@ -1,0 +1,219 @@
+<!DOCTYPE HTML>
+    <html lang="en">
+
+	   <head>
+       {% load staticfiles %}
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html">
+        <title>EFM Calculator</title>
+	    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+      	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+        <script src="{% static 'efm/Scribl.1.1.4.min.js' %}"></script>
+	    <script src="{% static 'efm/dragscrollable.js' %}"></script>
+	  	<script src="{% static 'efm/jquery.tablesorter.min.js' %}"></script>
+        <script src="{% static 'efm/modifications.js' %}"></script>
+
+        <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+		<link href="{% static 'efm/styles.css' %}" rel="stylesheet" type="text/css" media="all" />
+		
+		<script>
+
+            // Let's generate our CSV...
+            $(document).ready(function () {
+
+                function exportTableToCSV($table, filename) {
+
+                    var $rows = $table.find('tr'),
+
+                        // Temporary delimiter characters unlikely to be typed by keyboard
+                        // This is to avoid accidentally splitting the actual contents
+                        tmpColDelim = String.fromCharCode(11), // vertical tab character
+                        tmpRowDelim = String.fromCharCode(0), // null character
+
+                        // actual delimiter characters for CSV format
+                        colDelim = ',',
+                        rowDelim = '\r\n',
+
+                        // Grab text from table into CSV formatted string
+                        csv = 'Name, {{ title }}, RIP score, {{ rate|floatformat }},,\r\n'+$rows.map(function (i, row) {
+                            var $row = $(row),
+                                $cols = $row.find('td,th');
+
+                            return $cols.map(function (j, col) {
+                                var $col = $(col),
+                                    text = $col.text();
+
+                                return text.replace('"', '""'); // escape double quotes
+
+                            }).get().join(tmpColDelim);
+
+                        }).get().join(tmpRowDelim)
+                            .split(tmpRowDelim).join(rowDelim)
+                            .split(tmpColDelim).join(colDelim),
+
+                        // Data URI
+                        csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
+                    $(this)
+                        .attr({
+                        'download': filename,
+                            'href': csvData,
+                            'target': '_blank'
+                    });
+                }
+
+                // This must be a hyperlink
+                $(".export").on('click', function (event) {
+                    // CSV
+                    exportTableToCSV.apply(this, [$('#mytable'), 'export.csv']);
+
+                    // IF CSV, don't do event.preventDefault() or return false
+                    // We actually need this to be a typical hyperlink
+                });
+            });
+		        function draw(canvasName) {
+
+					// Get Canvas and Create Chart
+				  	var canvas = document.getElementById(canvasName);
+
+					// Create Chart
+					var chart = new custom_Scribl(canvas, 1000);
+                    chart.laneSizes = 20;
+					chart.scrollable = true;
+					chart.scale.min = 0;
+					chart.scale.max = {{ seq_length }};
+
+					{% if features %}
+					var track = chart.addTrack();
+                    var lane = track.addLane();
+
+                    {% for entry in features %}
+                    {% if entry.type == 'BioBrick' %}
+					if (!biobrick) {
+						var track_bb = chart.addTrack();
+						var biobrick = track_bb.addLane();
+					}
+                    var feature = biobrick.addFeature( new Rect('mum', {{ entry.startpos }}, {{ entry.length }}, '+'));
+                    {% else %}
+                    feature = lane.addFeature( new Rect('mum', {{ entry.startpos }}, {{ entry.length }}, '+'));
+                    {% endif %}
+                    feature.color = '{{ entry.color }}';
+                    feature.name = '{{ entry.type }}: ' + '{{ entry.title }}';
+                    feature.onMouseover = '{{ entry.type }}: ' + '{{ entry.title }}';
+					feature.borderColor = 'white';
+					feature.borderWidth = 2;
+					feature.text.color = 'white';
+                    feature.addDrawHook(function(feature){ return setMinGlyphSize(feature, 10); });
+                    {% endfor %}
+					{% endif %}
+                        var title_track = chart.addTrack();
+                    var title_lane = title_track.addLane();
+                    var title_bar = title_lane.addFeature( new Rect('title', 0.1, {{ seq_length }}));
+                    title_bar.name = 'Device Length: {{ seq_length }} bp';
+					/* if (biobrick.features === []) {
+						chart.removeTrack(track_bb);
+					} */
+
+					var rmd_track = chart.addTrack();
+					var ssr_track = chart.addTrack();
+					var ssr_lane = ssr_track.addLane();
+
+                    {% for entry in repeats %}
+					
+					{% if entry.type == 'rmd' %}
+					var color = getRateColor({{ entry.raw_rate }});
+					lane = rmd_track.addLane();
+						
+                    {% for pos in entry.location %}
+                    var repeat = lane.addFeature( new BlockArrow('rmd', {{ pos }}, {{ entry.length.0 }}, '+'));
+					repeat.color = color;
+                    repeat.onMouseover = 'RMD, Rate: ' + {{ entry.raw_rate|stringformat:'.2E' }};
+					repeat.borderColor = 'white';
+					repeat.borderWidth = 2;
+                    {% endfor %}
+					
+                    var line = lane.addFeature(new Line( 'rmd', {{ entry.location|first }}, ({{ entry.location|last }} - {{ entry.location|first }}) ));
+                    line.color = color;
+
+					{% else %}
+
+					// Add sequences for SSR
+					var ssr = ssr_lane.addFeature(new Rect('ssr', {{ entry.location.0 }}, {{ entry.length.0 }}*{{ entry.count }}) );
+                    ssr.onMouseover = 'SSR (Click To Zoom): '+Array({{ entry.count }}+1).join('{{ entry.sequence }}');
+					ssr.onClick = function() {chart.scrollValues=[{{ entry.location.0|add:'-40' }},{{ entry.location.0|add:40 }}];chart.redraw();}
+					ssr.color = getRateColor({{ entry.raw_rate }});
+					ssr.seq = Array({{ entry.count }}+1).join('{{ entry.sequence }}');
+					ssr.borderColor = 'black';
+					ssr.borderWidth = 1;
+					ssr.ntLevel = 0.1;
+
+					ssr.addDrawHook(function(feature){ return setMinGlyphSize(feature, 10); });
+					{% endif %}
+					
+                    {% endfor %}
+
+					// Draw Chart
+					canvas.height = chart.getHeight();
+	      			chart.draw();
+
+			}
+
+			
+
+		</script>
+      </head>
+
+	  <body onload="draw('canvas')">
+            <div id="wrapper">
+            <h1 id="logo"></h1>
+            <h1 id="banner">Results: {{ title }}</h1>
+			<h2>RIP score: {{ rate|floatformat }}*</h2>
+			<p class="note">*(Lower is more stable.)</p>
+            <div id="csv-button">
+				<div><a href="{% url 'efm:index' %}">&larr; New Sequence</a></div>
+				<div><a href="#" class="export">Download CSV</a></div>
+                <div><a href="https://github.com/barricklab/efm-calculator/wiki" target="_blank">Help</a></div>
+			</div>
+            {% if repeats != '' %}
+            <canvas id="canvas" width="1000" height="500" style="margin-left:auto; margin-right:auto;"></canvas>
+
+                <table id="mytable" class="tablesorter" cellpadding="0" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th><span>Location</span></th>
+                        <th><span>Length</span></th>
+                        <th><span>Sequence</span></th>
+                        <th><span>Count</span></th>
+                        <th><span>Type</span></th>
+                        <th><span>Rate**</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in repeats %}
+                    <tr>
+						<td class="location">{{ entry.location|join:', ' }}</td>
+                        <td>{{ entry.length.0 }}</td>
+                        <td>{{ entry.sequence|default:'&mdash;' }}</td>
+                        <td>{{ entry.count }}</td>
+                        <td>{% if entry.type = 'rmd' %}Repeat mediated deletion{% else %}Simple sequence repeat{% endif %}</td>
+                        <td>{{ entry.raw_rate|stringformat:'.2E' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+	        </table>
+
+                {% else %}
+                <h3 class="no-results">The EFM Calculator detected no sites with predicted mutations rates greater than 1.0E-10**. This sequence is remarkably stable!</h3>
+	   		    {% endif %}
+                <div class="footer">
+                <p>**Units are estimated recombination or mutation events per cell per generation.</p>
+			</div>
+            </div>
+            <div class="footer">
+                Version 0.9.0.0. The EFM Calculator is for noncommercial use only. <a href="https://github.com/barricklab/efm-calculator/wiki#interpreting-results" target="_blank">What do these results mean?</a>
+                <br />Web view powered by Django and SCRIBL.</p>
+			</div>
+	   </body>
+
+    </html>
+

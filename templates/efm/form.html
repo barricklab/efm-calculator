@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+<title>EFM Calculator</title>
+{% load staticfiles %}
+<link href="{% static 'efm/styles.css' %}" rel="stylesheet" type="text/css" media="all" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#clear").click(function () {
+                $("#id_sequence_file").val('');
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="wrapper">
+<h1 id="logo"></h1>
+<h1 id="banner"></h1>
+    <div id="csv-button">
+        <div><a href="https://github.com/barricklab/efm-calculator/wiki" target="_blank">Help</a></div>
+    </div>
+<h3>Please select a file to upload or enter a sequence into the textbox.</h3>
+<p>FASTA, GenBank, or BioBrick XML format files are supported. BioBrick XML files are available from the <a href="http://parts.igem.org/Registry_API" target="_blank">iGEM Registry</a>.</p>
+    {{ form.non_field_errors }}
+    <form action="{% url 'efm:index' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <p>
+        {{ form.sequence_file.label_tag }}
+        {{ form.sequence_file }} <input type="button" id="clear" value="Clear" />
+    </p>
+    <p>
+        {{ form.sequence.label_tag }}
+        {{ form.sequence }}
+    </p>
+    <p>
+        {{ form.organism.label_tag }}
+        {{ form.organism }}
+    </p>
+    <p>
+        {{ form.check_features.label_tag }}
+        {{ form.check_features }}
+        {{ form.check_features.help_text }}
+    </p>
+    <input id="submit" type="submit" value="Run EFM Calculator" />
+</form>
+    <h3>Citing the EFM Calculator</h3>
+    <p><em>Coming soon.</em></p>
+</div>
+<div class="footer">
+    <p>Version 0.9.0.0. The EFM Calculator is for noncommercial use only.</p>
+    <p>Web view powered by Django and SCRIBL.</p>
+</div>
+</body>
+</html>
