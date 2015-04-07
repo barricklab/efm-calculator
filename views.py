@@ -16,6 +16,7 @@ class SeqForm(forms.Form):
     '''
     This defines the DNA sequence submission form
     '''
+
     sequence_file = forms.FileField(required=False)
     sequence = forms.CharField(widget=forms.Textarea, required=False, min_length=50, max_length=50000)
     organism = forms.ChoiceField(choices=(
@@ -152,4 +153,4 @@ def get_sequence(request):
     else:
         form = SeqForm()
 
-    return render(request, 'efm/form.html', {'form': form})
+    return render(request, 'efm/form.html', {'form': form, 'version': EFM_VERSION})

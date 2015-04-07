@@ -1,3 +1,10 @@
+####################################################
+## EVOLUTIOINARY FAILURE MODE CALCULATOR
+## Version 1.0.0
+####################################################
+
+EFM_VERSION = "1.0.0"
+
 # Import subprocess for command line stuff
 import subprocess
 import os
@@ -424,4 +431,5 @@ def process_efm(form):
             'rate': overall_rate,
             'title': form.cleaned_data['title'],
             'check_features': form.cleaned_data['check_features'],
-            'organism': org}
+            'organism': org,
+            'version': EFM_VERSION}
