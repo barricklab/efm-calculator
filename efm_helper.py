@@ -1,9 +1,9 @@
 ####################################################
 ## EVOLUTIOINARY FAILURE MODE CALCULATOR
-## Version 1.0.0
+## Version 1.0.1
 ####################################################
 
-EFM_VERSION = "1.0.0"
+EFM_VERSION = "1.0.1"
 
 # Import subprocess for command line stuff
 import subprocess
@@ -369,18 +369,24 @@ def rate_sum(repeats, seq_len):
     :param seq_len: Length of input sequence
     :return: Total predicted RIP score for whole sequence
     """
-    r_sum = float(0)
+    ssr_sum = float(0)
+    rmd_sum = float(0)
     for entry in repeats:
-        r_sum += float(entry['raw_rate']) if entry['raw_rate'] != '' and entry['overlap'] is True else float(0)
+        if entry['raw_rate'] != '' and entry['overlap'] is True:
+            if entry['type'] == 'ssr':
+                ssr_sum += entry['raw_rate']
+            elif entry['type'] == 'rmd':
+                rmd_sum += entry['raw_rate']
+
     base_rate = float(seq_len) * float(SUB_RATE)
     # Add in the mutation rate of an individual nucleotide
-    r_sum += base_rate
+    r_sum = ssr_sum + rmd_sum + base_rate
     # Set the maximum rate sum to 1 for now.
     if r_sum > 1:
         r_sum = float(1)
     rel_rate = (float(r_sum) / float(base_rate))
 
-    return rel_rate
+    return {'rip': rel_rate, 'ssr_sum': ssr_sum, 'rmd_sum': rmd_sum, 'bps_sum': base_rate}
 
 
 def process_efm(form):

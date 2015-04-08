@@ -41,6 +41,13 @@ h3.no-results {
     text-align: center;
 }
 
+th#summary {
+    text-align: center;
+    padding: 10px;
+    background: #EEE;
+    border-bottom: 2px solid darkgray;
+}
+
 #wrapper {
   display: block;
   background: #fff;
@@ -63,7 +70,7 @@ h3.no-results {
   text-align: left;
 }
 
-#mytable {
+table {
   margin: 0 auto;
   font-size: 1em;
   margin-bottom: 15px;
@@ -71,14 +78,18 @@ h3.no-results {
 }
 
 
-#mytable thead {
+table thead {
   cursor: pointer;
   background: #c9dff0;
 }
-#mytable thead tr th {
+
+table thead tr th {
   font-weight: bold;
   font-size: 1.2em;
   padding: 12px 20px;
+ }
+
+#mytable thead tr th {
   padding-left: 32px;
 }
 #mytable thead tr th span {
@@ -101,16 +112,16 @@ h3.no-results {
 }
 
 
-#mytable tbody tr {
+table tbody tr {
   color: #555;
 }
 
-#mytable tbody tr:hover {
+table tbody tr:hover {
     cursor: pointer;
     background-color: #EEE;
 }
 
-#mytable tbody tr td {
+table tbody tr td {
   text-align: center;
   padding: 10px 5px;
   border-bottom: 1px solid lightgray;
