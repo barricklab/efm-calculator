@@ -1,5 +1,5 @@
 # Evolutionary Failure Mode Calculator
-Version 1.0.0.
+Version 1.0.1.
 ### Dependencies ###
 The EFM Calculator is freely available as a web tool at the [Barrick Lab website](http://www.barricklab.org/efm) and is compatible with Chrome, Firefox, and Safari. If you would like to set a local implementation of the EFM Calculator you will need to install the following:
 
