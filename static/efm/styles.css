@@ -41,13 +41,6 @@ h3.no-results {
     text-align: center;
 }
 
-th#summary {
-    text-align: center;
-    padding: 10px;
-    background: #EEE;
-    border-bottom: 2px solid darkgray;
-}
-
 #wrapper {
   display: block;
   background: #fff;
@@ -129,6 +122,25 @@ table tbody tr td {
 
 #mytable tbody tr td.location {
     text-align: left;
+}
+
+table#summary, table#summary th, table#summary tr, table#summary td {
+    font-size: 11pt;
+    padding: 5px;
+    margin: 0 auto;
+}
+
+table#summary tbody tr:hover {
+    cursor: auto;
+    background-color: #ffffff;
+}
+
+table#summary tr, table#summary th {
+    border-bottom: 1px solid gray;
+}
+
+th#summary-head {
+    background-color: #EEEEEE;
 }
 
 #csv-button {

@@ -22,7 +22,7 @@ class SeqForm(forms.Form):
     organism = forms.ChoiceField(choices=(
         ('ecoli', 'E. coli'),
         ('reca', 'E. coli, RecA-'),
-        ('yeast', 'S. cerevisae'),
+        # ('yeast', 'S. cerevisae'),
     ))
     check_features = forms.BooleanField(label='Annotated Regions Only', required=False)
     check_features.help_text = 'Only assign rates for hypermutable sites that overlap ' \
