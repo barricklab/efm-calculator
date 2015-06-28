@@ -2,6 +2,9 @@
 <html>
 <head>
 <title>EFM Calculator</title>
+{% if GOOGLE_ANALYTICS_PROPERTY_ID %}
+  {% include "efm/ga.html" %}
+    {% endif %}
 {% load staticfiles %}
 <link href="{% static 'efm/styles.css' %}" rel="stylesheet" type="text/css" media="all" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>

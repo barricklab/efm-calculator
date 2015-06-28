@@ -2,6 +2,9 @@
     <html lang="en">
 
 	   <head>
+           {% if GOOGLE_ANALYTICS_PROPERTY_ID %}
+              {% include "efm/ga.html" %}
+           {% endif %}
        {% load staticfiles %}
         <meta charset="utf-8">
         <meta http-equiv="Content-Type" content="text/html">
