@@ -13,6 +13,9 @@
             $("#clear").click(function () {
                 $("#id_sequence_file").val('');
             });
+            $("#example").click(function () {
+                $("#id_sequence").val("\>BBa_T9002 Part-only sequence (1945 bp)\ntccctatcagtgatagagattgacatccctatcagtgatagagatactgagcactactagagaaagaggagaaatactagatgaaaaacataaatgccgacgacacatacagaataattaataaaattaaagcttgtagaagcaataatgatattaatcaatgcttatctgatatgactaaaatggtacattgtgaatattatttactcgcgatcatttatcctcattctatggttaaatctgatatttcaatcctagataattaccctaaaaaatggaggcaatattatgatgacgctaatttaataaaatatgatcctatagtagattattctaactccaatcattcaccaattaattggaatatatttgaaaacaatgctgtaaataaaaaatctccaaatgtaattaaagaagcgaaaacatcaggtcttatcactgggtttagtttccctattcatacggctaacaatggcttcggaatgcttagttttgcacattcagaaaaagacaactatatagatagtttatttttacatgcgtgtatgaacataccattaattgttccttctctagttgataattatcgaaaaataaatatagcaaataataaatcaaacaacgatttaaccaaaagagaaaaagaatgtttagcgtgggcatgcgaaggaaaaagctcttgggatatttcaaaaatattaggttgcagtgagcgtactgtcactttccatttaaccaatgcgcaaatgaaactcaatacaacaaaccgctgccaaagtatttctaaagcaattttaacaggagcaattgattgcccatactttaaaaattaataacactgatagtgctagtgtagatcactactagagccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttatatactagagacctgtaggatcgtacaggtttacgcaagaaaatggtttgttatagtcgaataaatactagagtcacacaggaaagtactagatgcgtaaaggagaagaacttttcactggagttgtcccaattcttgttgaattagatggtgatgttaatgggcacaaattttctgtcagtggagagggtgaaggtgatgcaacatacggaaaacttacccttaaatttatttgcactactggaaaactacctgttccatggccaacacttgtcactactttcggttatggtgttcaatgctttgcgagatacccagatcatatgaaacagcatgactttttcaagagtgccatgcccgaaggttatgtacaggaaagaactatatttttcaaagatgacgggaactacaagacacgtgctgaagtcaagtttgaaggtgatacccttgttaatagaatcgagttaaaaggtattgattttaaagaagatggaaacattcttggacacaaattggaatacaactataactcacacaatgtatacatcatggcagacaaacaaaagaatggaatcaaagttaacttcaaaattagacacaacattgaagatggaagcgttcaactagcagaccattatcaacaaaatactccaattggcgatggccctgtccttttaccagacaaccattacctgtccacacaatctgccctttcgaaagatcccaacgaaaagagagaccacatggtccttcttgagtttgtaacagctgctgggattacacatggcatggatgaactatacaaataataatactagagccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttata");
+            });
         });
     </script>
 </head>
@@ -28,6 +31,7 @@
     {{ form.non_field_errors }}
     <form action="{% url 'efm:index' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+        <p><input type="button" id="example" value="Click here for an example sequence" /></p>
     <p>
         {{ form.sequence_file.label_tag }}
         {{ form.sequence_file }} <input type="button" id="clear" value="Clear" />
@@ -48,7 +52,9 @@
     <input id="submit" type="submit" value="Run EFM Calculator" />
 </form>
     <h3>Citing the EFM Calculator</h3>
-    <p><em>Coming soon.</em></p>
+    <p>Please reference the following publication when citing the EFM Calculator:</p>
+    <p>Benjamin R. Jack, Sean P. Leonard, Dennis M. Mishler, Brian A. Renda, Dacia Leon, Gabriel A. Suárez, and Jeffrey E Barrick (2015). Predicting the genetic stability of engineered DNA sequences with the EFM Calculator. ACS Synthetic Biology. <em>Just Accepted Manuscript</em>.
+<br />DOI: <a href="https://dx.doi.org/10.1021/acssynbio.5b00068">10.1021/acssynbio.5b00068</a></p>
 </div>
 <div class="footer">
     <p>Version {{ version }}. The EFM Calculator is for noncommercial use only.</p>
