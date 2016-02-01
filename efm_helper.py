@@ -21,6 +21,10 @@ import math
 # Import ElementTree for parsing BioBrick XML
 from xml.etree import ElementTree
 
+# CLI functionality
+import argparse
+from Bio import SeqIO, Seq
+
 SUB_RATE = float(2.2 * 10 ** (-10))
 
 
@@ -439,3 +443,72 @@ def process_efm(form):
             'check_features': form.cleaned_data['check_features'],
             'organism': org,
             'version': EFM_VERSION}
+
+
+def process_file(filepath, organism):
+    """Process a single file given by the user on the command line."""
+
+    # Determine file type
+    spstring = re.split('.', filepath)
+    ftype = spstring[-1].lower()
+    if ftype == 'gb':
+        ftype = 'genbank'
+        
+    # Open the file and get metadata
+    obj_file = SeqIO.read(filepath, ftype)
+    features = obj_file.features
+    my_seq = str(obj_file.seq)
+    
+    # Pack metadata into dictionary and 
+    return
+
+def process_dir(dirpath):
+    """Process several files all contained within a directory specified
+    on the command line."""
+
+    flist = list() # list of files
+    metadata_lst = list() # list of dictionaries containing sequence metadata
+
+    for (dirName, subDirList, fileList in os.walk(dirpath)):
+        flist = fileList
+
+    # Gather metadata on all files and store in a list
+    for f in flist:
+        metadata_lst.append(process_file(f))
+    
+    # todo: finish this, lol
+
+    return
+def main():
+    """Driver for command line version of EFM calculator."""
+
+    """Get the input from the user via the command line. The user may
+    specify (currently) either GenBank or FASTA files. GenBank files
+    must be converted into FASTA format for use with repeat-match in 
+    MUMmer."""
+
+    # Define error strings
+    ERR_NO_FILE = "No file(s) specified."
+    ERR_SPEC_ORG = "Must specify organism if using FASTA file."
+    ERR_NO_ACCESS = "Cannot access path:"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file', type=str, help="file or path containing sequence(s) to analyze")
+    #parser.add_argument('--format', type=str, help="specify format of sequence file(s)")
+    parser.add_argument('--organism', choices=['ecoli', 'reca', 'yeast'], help="specify organism")
+    args = parser.parse_args()
+
+    # Enforce constraints on input
+    if not args.file:
+        print "ERROR:", ERR_NO_FILE
+        return
+
+    if not(os.access(args.file), os.R_OK):
+        print "ERROR:", ERR_NO_ACCESS, args.file
+        return
+
+    # Process a single file
+    if not (os.path.isdir(args.file)):
+        process_file(args.file)
+
+    else:
+        process_dir(args.file)
