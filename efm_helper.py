@@ -393,17 +393,15 @@ def rate_sum(repeats, seq_len):
     return {'rip': rel_rate, 'ssr_sum': ssr_sum, 'rmd_sum': rmd_sum, 'bps_sum': base_rate}
 
 
-def process_efm(form):
+def process_efm(fasta_filepath, features, my_seq, org, check_features):
     """
     Takes a django form object and finds potentially hypermutable sites in a submitted sequence.
     :param form: A Django form object for processing
     :return: A dictionary of values to pass to the template renderer
     """
-    # Define the paths for your input files, sequence files, and biobrick file
-    input_file = form.cleaned_data.get('fasta_file')
-    features = form.cleaned_data.get('features')
-    my_seq = form.cleaned_data.get('raw_sequence')
-    org = form.cleaned_data.get('organism')
+    # Define the paths for your input file
+    input_file = fasta_filepath
+    
 
     # Set maximum window size for get_repeats_in_window()
     unit_length = 15
@@ -427,7 +425,7 @@ def process_efm(form):
     merged_repeats = mummer_repeats + all_ssr
 
     # Check if any areas overlap annotated regions
-    merged_repeats = check_overlap(merged_repeats, features, form.cleaned_data.get('check_features'))
+    merged_repeats = check_overlap(merged_repeats, features, check_features)
 
     # Truncate repeat list based on absolute mutation rate
     merged_repeats_trunc = truncate_table(merged_repeats, 10 ** (-9))
@@ -440,7 +438,7 @@ def process_efm(form):
             'seq_length': len(my_seq),
             'rate': overall_rate,
             'title': form.cleaned_data['title'],
-            'check_features': form.cleaned_data['check_features'],
+            'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
 
@@ -448,19 +446,28 @@ def process_efm(form):
 def process_file(filepath, organism):
     """Process a single file given by the user on the command line."""
 
+    fasta_filepath = filepath
+
     # Determine file type
     spstring = re.split('.', filepath)
     ftype = spstring[-1].lower()
     if ftype == 'gb':
         ftype = 'genbank'
-        
+    check_features = (ftype == 'genbank')
+
     # Open the file and get metadata
     obj_file = SeqIO.read(filepath, ftype)
     features = obj_file.features
     my_seq = str(obj_file.seq)
     
-    # Pack metadata into dictionary and 
-    return
+    # Create FASTA file if necessary
+    if ftype == 'fasta':
+        fasta_filepath = spstring[0]+"tmp/" + spstring[-1] + ".fasta"
+        SeqIO.convert(filepath, "genbank", fasta_filepath, "fasta")
+        
+    # Process the file
+    output_dict = process_efm(fasta_filepath, features, my_seq, org, check_features)
+    return output_dict
 
 def process_dir(dirpath):
     """Process several files all contained within a directory specified
@@ -469,7 +476,7 @@ def process_dir(dirpath):
     flist = list() # list of files
     metadata_lst = list() # list of dictionaries containing sequence metadata
 
-    for (dirName, subDirList, fileList in os.walk(dirpath)):
+    for dirName, subDirList, fileList in os.walk(dirpath):
         flist = fileList
 
     # Gather metadata on all files and store in a list
@@ -477,8 +484,11 @@ def process_dir(dirpath):
         metadata_lst.append(process_file(f))
     
     # todo: finish this, lol
+    for item in metadata_lst:
+        print item
 
     return
+
 def main():
     """Driver for command line version of EFM calculator."""
 
@@ -486,6 +496,9 @@ def main():
     specify (currently) either GenBank or FASTA files. GenBank files
     must be converted into FASTA format for use with repeat-match in 
     MUMmer."""
+
+    # Define temporary directory
+    os.mkdir('tmp')
 
     # Define error strings
     ERR_NO_FILE = "No file(s) specified."
@@ -512,3 +525,7 @@ def main():
 
     else:
         process_dir(args.file)
+
+
+if __name__ == "main":
+    main()
