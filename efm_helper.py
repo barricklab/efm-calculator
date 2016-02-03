@@ -395,9 +395,12 @@ def rate_sum(repeats, seq_len):
 
 def process_efm(fasta_filepath, features, my_seq, org, check_features):
     """
-    Takes a django form object and finds potentially hypermutable sites in a submitted sequence.
-    :param form: A Django form object for processing
-    :return: A dictionary of values to pass to the template renderer
+    Takes command line arguments and finds potentially hypermutable sites in a submitted sequence(s).
+    :param fasta_filepath: the path of the FASTA file
+    :param features: dictionary of features
+    :param org: the organism to which the sequence belongs
+    :param check_features: boolean determining to check for features
+    :return: A CSV format to be written to disk
     """
     # Define the paths for your input file
     input_file = fasta_filepath
@@ -433,7 +436,7 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
     # Find the sum of all mutation rates for sequences.
     overall_rate = rate_sum(merged_repeats, len(my_seq))
 
-    return {'repeats': merged_repeats_trunc if merged_repeats_trunc else '',
+    print {'repeats': merged_repeats_trunc if merged_repeats_trunc else '',
             'features': features,
             'seq_length': len(my_seq),
             'rate': overall_rate,
@@ -441,6 +444,7 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
             'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
+    return
 
 
 def process_file(filepath, organism):
@@ -449,8 +453,10 @@ def process_file(filepath, organism):
     fasta_filepath = filepath
 
     # Determine file type
-    spstring = re.split('.', filepath)
-    ftype = spstring[-1].lower()
+    spstring = re.split('/', filepath)
+    fname = spstring[-1].lower()
+    fnamesplit = re.split('\.', fname)
+    ftype = fnamesplit[-1]
     if ftype == 'gb':
         ftype = 'genbank'
     check_features = (ftype == 'genbank')
@@ -461,15 +467,15 @@ def process_file(filepath, organism):
     my_seq = str(obj_file.seq)
     
     # Create FASTA file if necessary
-    if ftype == 'fasta':
-        fasta_filepath = spstring[0]+"tmp/" + spstring[-1] + ".fasta"
+    if ftype != 'fasta':
+        fasta_filepath = spstring[0:len(spstring)-1]+"tmp/" + spstring[-1] + ".fasta"
         SeqIO.convert(filepath, "genbank", fasta_filepath, "fasta")
         
     # Process the file
-    output_dict = process_efm(fasta_filepath, features, my_seq, org, check_features)
+    output_dict = process_efm(fasta_filepath, features, my_seq, organism, check_features)
     return output_dict
 
-def process_dir(dirpath):
+def process_dir(dirpath, organism):
     """Process several files all contained within a directory specified
     on the command line."""
 
@@ -481,7 +487,7 @@ def process_dir(dirpath):
 
     # Gather metadata on all files and store in a list
     for f in flist:
-        metadata_lst.append(process_file(f))
+        metadata_lst.append(process_file(f, organism))
     
     # todo: finish this, lol
     for item in metadata_lst:
@@ -498,7 +504,8 @@ def main():
     MUMmer."""
 
     # Define temporary directory
-    os.mkdir('tmp')
+    if not os.access('tmp', os.R_OK):
+        os.mkdir('tmp')
 
     # Define error strings
     ERR_NO_FILE = "No file(s) specified."
@@ -511,21 +518,29 @@ def main():
     args = parser.parse_args()
 
     # Enforce constraints on input
+    organism = ""
+
     if not args.file:
         print "ERROR:", ERR_NO_FILE
         return
 
-    if not(os.access(args.file), os.R_OK):
+    if not(os.access(args.file, os.R_OK)):
         print "ERROR:", ERR_NO_ACCESS, args.file
         return
 
+    if not args.organism:
+        organism = 'ecoli'
+    else:
+        organism = args.organism
+
     # Process a single file
     if not (os.path.isdir(args.file)):
-        process_file(args.file)
+        process_file(args.file, organism)
 
     else:
-        process_dir(args.file)
+        process_dir(args.file, organism)
 
+    os.rmdir('tmp')
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
