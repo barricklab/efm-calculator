@@ -440,7 +440,7 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
             'features': features,
             'seq_length': len(my_seq),
             'rate': overall_rate,
-            'title': form.cleaned_data['title'],
+            'title': 'title',
             'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
@@ -463,14 +463,19 @@ def process_file(filepath, organism):
 
     # Open the file and get metadata
     obj_file = SeqIO.read(filepath, ftype)
-    features = obj_file.features
+    features = dict()
+    fs = obj_file.features
+    for feat in fs:
+        features.update(feat)
+    print features
     my_seq = str(obj_file.seq)
     
     # Create FASTA file if necessary
     if ftype != 'fasta':
-        fasta_filepath = spstring[0:len(spstring)-1]+"tmp/" + spstring[-1] + ".fasta"
-        SeqIO.convert(filepath, "genbank", fasta_filepath, "fasta")
-        
+        fasta_filepath = "tmp/" + fnamesplit[0] + ".fasta"
+        with open(fasta_filepath, 'w') as handle:
+            SeqIO.convert(filepath, "genbank", handle, "fasta")
+
     # Process the file
     output_dict = process_efm(fasta_filepath, features, my_seq, organism, check_features)
     return output_dict
