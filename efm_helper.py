@@ -436,7 +436,7 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
     # Find the sum of all mutation rates for sequences.
     overall_rate = rate_sum(merged_repeats, len(my_seq))
 
-    print {'repeats': merged_repeats_trunc if merged_repeats_trunc else '',
+    return {'repeats': merged_repeats_trunc if merged_repeats_trunc else '',
             'features': features,
             'seq_length': len(my_seq),
             'rate': overall_rate,
@@ -444,7 +444,7 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
             'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
-    return
+    
 
 
 def process_file(filepath, organism):
@@ -463,16 +463,12 @@ def process_file(filepath, organism):
 
     # Open the file and get metadata
     obj_file = SeqIO.read(filepath, ftype)
-    features = dict()
-    fs = obj_file.features
-    for feat in fs:
-        features.update(feat)
-    print features
+    features = get_genbank_features(obj_file)
     my_seq = str(obj_file.seq)
     
     # Create FASTA file if necessary
     if ftype != 'fasta':
-        fasta_filepath = "tmp/" + fnamesplit[0] + ".fasta"
+        fasta_filepath = "/tmp/" + fnamesplit[0] + ".fasta"
         with open(fasta_filepath, 'w') as handle:
             SeqIO.convert(filepath, "genbank", handle, "fasta")
 
@@ -496,7 +492,7 @@ def process_dir(dirpath, organism):
     
     # todo: finish this, lol
     for item in metadata_lst:
-        print item
+        print "Item in lst:\n" + str(item)
 
     return
 
@@ -509,8 +505,7 @@ def main():
     MUMmer."""
 
     # Define temporary directory
-    if not os.access('tmp', os.R_OK):
-        os.mkdir('tmp')
+    tmp_path = "/tmp/"
 
     # Define error strings
     ERR_NO_FILE = "No file(s) specified."
@@ -540,12 +535,11 @@ def main():
 
     # Process a single file
     if not (os.path.isdir(args.file)):
-        process_file(args.file, organism)
+        d = process_file(args.file, organism)
+        print "OUTPUT:\n" + str(d)
 
     else:
         process_dir(args.file, organism)
-
-    os.rmdir('tmp')
 
 if __name__ == "__main__":
     main()
