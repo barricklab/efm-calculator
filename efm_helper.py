@@ -496,6 +496,30 @@ def process_dir(dirpath, organism):
 
     return
 
+def print_output(data):
+    """Export data from MUMmer into CSV/table format.
+    :param data: dictionary output from process_file()"""
+
+    """The following is documentation to help me, Tyler, write this program.
+
+    :key rate: dictionary of rates. Key is sum, value is rate
+    :key version: version of efm calc (string)
+    :key features: list of dictionaries of features
+    :key title: useless string (but could be used later for stuff)
+    :key repeats: list of dictionaries of repeats
+    :key organism: the organism (string)
+    :key seq_length: length of sequence (numeric)
+    """
+
+    # Print summary of rates and RIP score
+    print '<table id=\'rates\'>'
+    print '\t<tr>'
+    for rate in data['rate']:
+        print rate
+    print data
+
+
+
 def main():
     """Driver for command line version of EFM calculator."""
 
@@ -536,7 +560,7 @@ def main():
     # Process a single file
     if not (os.path.isdir(args.file)):
         d = process_file(args.file, organism)
-        print "OUTPUT:\n" + str(d)
+        print_output(d)
 
     else:
         process_dir(args.file, organism)
