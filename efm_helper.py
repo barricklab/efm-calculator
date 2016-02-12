@@ -5,10 +5,9 @@
 
 EFM_VERSION = "1.0.1"
 
-# Import subprocess for command line stuff
-import subprocess
+
 import os
-import csv
+import subprocess
 from tempfile import NamedTemporaryFile
 
 # Import itertools
@@ -393,19 +392,37 @@ def rate_sum(repeats, seq_len):
     return {'rip': rel_rate, 'ssr_sum': ssr_sum, 'rmd_sum': rmd_sum, 'bps_sum': base_rate}
 
 
-def process_efm(fasta_filepath, features, my_seq, org, check_features):
+def process_efm(form):
     """
-    Takes command line arguments and finds potentially hypermutable sites in a submitted sequence(s).
-    :param fasta_filepath: the path of the FASTA file
-    :param features: dictionary of features
-    :param org: the organism to which the sequence belongs
-    :param check_features: boolean determining to check for features
-    :return: A CSV format to be written to disk
+    Takes a django form object and finds potentially hypermutable sites in a submitted sequence.
+    :param form: A Django form object for processing
+    :return: A dictionary of values to pass to the template renderer
     """
-    # Define the paths for your input file
-    input_file = fasta_filepath
-    
+    # Define the paths for your input files, sequence files, and biobrick file
+    input_file = form.cleaned_data.get('fasta_file')
+    features = form.cleaned_data.get('features')
+    my_seq = form.cleaned_data.get('raw_sequence')
+    org = form.cleaned_data.get('organism')
 
+    # Unified helper method implemented to accommodate command line version
+    return process_helper(input_file, features, my_seq, org,
+                          form.cleaned_data.get('check_features'),
+                          form.cleaned_data['title'])
+
+
+def process_helper(input_file, features, my_seq, org, check_features, title):
+    """
+    Helper function for processing input files independent of source (i.e.
+    command line vs. Django form object).
+    :param input_file: the FASTA file containing the sequence to be analyzed
+    :param features: dictionary of features
+    :param my_seq: raw nucleotide sequence as a string
+    :param org: organism
+    :param check_features: do we need to check features?
+    :param title: the title of the page (relevant for Django forms)
+    :return: a dictionary of values to pass to either the template renderer or
+    to CSV output procedure
+    """
     # Set maximum window size for get_repeats_in_window()
     unit_length = 15
 
@@ -440,130 +457,11 @@ def process_efm(fasta_filepath, features, my_seq, org, check_features):
             'features': features,
             'seq_length': len(my_seq),
             'rate': overall_rate,
-            'title': 'title',
+            'title': title,
             'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
     
 
 
-def process_file(filepath, organism):
-    """Process a single file given by the user on the command line."""
 
-    fasta_filepath = filepath
-
-    # Determine file type
-    spstring = re.split('/', filepath)
-    fname = spstring[-1].lower()
-    fnamesplit = re.split('\.', fname)
-    ftype = fnamesplit[-1]
-    if ftype == 'gb':
-        ftype = 'genbank'
-    check_features = (ftype == 'genbank')
-
-    # Open the file and get metadata
-    obj_file = SeqIO.read(filepath, ftype)
-    features = get_genbank_features(obj_file)
-    my_seq = str(obj_file.seq)
-    
-    # Create FASTA file if necessary
-    if ftype != 'fasta':
-        fasta_filepath = "/tmp/" + fnamesplit[0] + ".fasta"
-        with open(fasta_filepath, 'w') as handle:
-            SeqIO.convert(filepath, "genbank", handle, "fasta")
-
-    # Process the file
-    output_dict = process_efm(fasta_filepath, features, my_seq, organism, check_features)
-    return output_dict
-
-def process_dir(dirpath, organism):
-    """Process several files all contained within a directory specified
-    on the command line."""
-
-    flist = list() # list of files
-    metadata_lst = list() # list of dictionaries containing sequence metadata
-
-    for dirName, subDirList, fileList in os.walk(dirpath):
-        flist = fileList
-
-    # Gather metadata on all files and store in a list
-    for f in flist:
-        metadata_lst.append(process_file(f, organism))
-    
-    # todo: finish this, lol
-    for item in metadata_lst:
-        print "Item in lst:\n" + str(item)
-
-    return
-
-def print_output(data):
-    """Export data from MUMmer into CSV/table format.
-    :param data: dictionary output from process_file()"""
-
-    """The following is documentation to help me, Tyler, write this program.
-
-    :key rate: dictionary of rates. Key is sum, value is rate
-    :key version: version of efm calc (string)
-    :key features: list of dictionaries of features
-    :key title: useless string (but could be used later for stuff)
-    :key repeats: list of dictionaries of repeats
-    :key organism: the organism (string)
-    :key seq_length: length of sequence (numeric)
-    """
-
-    # Print summary of rates and RIP score
-    print '<table id=\'rates\'>'
-    print '\t<tr>'
-    for rate in data['rate']:
-        print rate
-    print data
-
-
-
-def main():
-    """Driver for command line version of EFM calculator."""
-
-    """Get the input from the user via the command line. The user may
-    specify (currently) either GenBank or FASTA files. GenBank files
-    must be converted into FASTA format for use with repeat-match in 
-    MUMmer."""
-
-    # Define temporary directory
-    tmp_path = "/tmp/"
-
-    # Define error strings
-    ERR_NO_FILE = "No file(s) specified."
-    ERR_SPEC_ORG = "Must specify organism if using FASTA file."
-    ERR_NO_ACCESS = "Cannot access path:"
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str, help="file or path containing sequence(s) to analyze")
-    #parser.add_argument('--format', type=str, help="specify format of sequence file(s)")
-    parser.add_argument('--organism', choices=['ecoli', 'reca', 'yeast'], help="specify organism")
-    args = parser.parse_args()
-
-    # Enforce constraints on input
-    organism = ""
-
-    if not args.file:
-        print "ERROR:", ERR_NO_FILE
-        return
-
-    if not(os.access(args.file, os.R_OK)):
-        print "ERROR:", ERR_NO_ACCESS, args.file
-        return
-
-    if not args.organism:
-        organism = 'ecoli'
-    else:
-        organism = args.organism
-
-    # Process a single file
-    if not (os.path.isdir(args.file)):
-        d = process_file(args.file, organism)
-        print_output(d)
-
-    else:
-        process_dir(args.file, organism)
-
-if __name__ == "__main__":
-    main()
