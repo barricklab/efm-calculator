@@ -119,46 +119,9 @@ def process_efm_cli(fasta_filepath, features, my_seq, org, check_features, title
     # Define the paths for your input file
     input_file = fasta_filepath
 
-    process_helper(fasta_filepath, features, my_seq, org, check_features, title)
+    return process_helper(fasta_filepath, features, my_seq, org, check_features, title)
 
-    # Set maximum window size for get_repeats_in_window()
-    unit_length = 15
 
-    # Integrate repeats generated from nucmer and from repeat-match
-    mummer_repeats = run_mummer(input_file, org)
-
-    # Get short repeats (SSRs) in each window size up to max unit_length
-    all_ssr = []
-    for i in range(unit_length):
-        min_count = math.ceil(8 / (i + 1))
-        if min_count < 3:
-            min_count = 3
-        if (i + 1) == 1:
-            min_count = 4
-        repeat_in_window = get_repeats_in_window(i + 1, my_seq, min_count, org)
-        if repeat_in_window:
-            all_ssr += repeat_in_window
-
-    # Merge repeat lists together
-    merged_repeats = mummer_repeats + all_ssr
-
-    # Check if any areas overlap annotated regions
-    merged_repeats = check_overlap(merged_repeats, features, check_features)
-
-    # Truncate repeat list based on absolute mutation rate
-    merged_repeats_trunc = truncate_table(merged_repeats, 10 ** (-9))
-
-    # Find the sum of all mutation rates for sequences.
-    overall_rate = rate_sum(merged_repeats, len(my_seq))
-
-    return {'repeats': merged_repeats_trunc if merged_repeats_trunc else '',
-            'features': features,
-            'seq_length': len(my_seq),
-            'rate': overall_rate,
-            'title': title,
-            'check_features': check_features,
-            'organism': org,
-            'version': EFM_VERSION}
 def main():
     """Driver for command line version of EFM calculator."""
 
