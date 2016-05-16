@@ -5,10 +5,9 @@
 
 EFM_VERSION = "1.0.1"
 
-# Import subprocess for command line stuff
-import subprocess
+
 import os
-import csv
+import subprocess
 from tempfile import NamedTemporaryFile
 
 # Import itertools
@@ -20,6 +19,10 @@ import math
 
 # Import ElementTree for parsing BioBrick XML
 from xml.etree import ElementTree
+
+# CLI functionality
+import argparse
+from Bio import SeqIO, Seq
 
 SUB_RATE = float(2.2 * 10 ** (-10))
 
@@ -36,7 +39,7 @@ def run_mummer(fasta_file, org):
     long_repeats = dict()
     # Execute MUMmer command
     try:
-        output = subprocess.check_output(['repeat-match', '-n', '16', '-f', fasta_file])
+        output = subprocess.check_output(['repeat-match', '-n', '6', '-f', fasta_file])
     except:
         raise
         print "MUMmer command 'repeat-match' failed."
@@ -401,6 +404,25 @@ def process_efm(form):
     my_seq = form.cleaned_data.get('raw_sequence')
     org = form.cleaned_data.get('organism')
 
+    # Unified helper method implemented to accommodate command line version
+    return process_helper(input_file, features, my_seq, org,
+                          form.cleaned_data.get('check_features'),
+                          form.cleaned_data['title'])
+
+
+def process_helper(input_file, features, my_seq, org, check_features, title):
+    """
+    Helper function for processing input files independent of source (i.e.
+    command line vs. Django form object).
+    :param input_file: the FASTA file containing the sequence to be analyzed
+    :param features: dictionary of features
+    :param my_seq: raw nucleotide sequence as a string
+    :param org: organism
+    :param check_features: do we need to check features?
+    :param title: the title of the page (relevant for Django forms)
+    :return: a dictionary of values to pass to either the template renderer or
+    to CSV output procedure
+    """
     # Set maximum window size for get_repeats_in_window()
     unit_length = 15
 
@@ -423,7 +445,7 @@ def process_efm(form):
     merged_repeats = mummer_repeats + all_ssr
 
     # Check if any areas overlap annotated regions
-    merged_repeats = check_overlap(merged_repeats, features, form.cleaned_data.get('check_features'))
+    merged_repeats = check_overlap(merged_repeats, features, check_features)
 
     # Truncate repeat list based on absolute mutation rate
     merged_repeats_trunc = truncate_table(merged_repeats, 10 ** (-9))
@@ -435,7 +457,11 @@ def process_efm(form):
             'features': features,
             'seq_length': len(my_seq),
             'rate': overall_rate,
-            'title': form.cleaned_data['title'],
-            'check_features': form.cleaned_data['check_features'],
+            'title': title,
+            'check_features': check_features,
             'organism': org,
             'version': EFM_VERSION}
+    
+
+
+
