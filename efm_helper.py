@@ -39,7 +39,7 @@ def run_mummer(fasta_file, org):
     long_repeats = dict()
     # Execute MUMmer command
     try:
-        output = subprocess.check_output(['repeat-match', '-n', '16', '-f', fasta_file])
+        output = subprocess.check_output(['repeat-match', '-n', '6', '-f', fasta_file])
     except:
         raise
         print "MUMmer command 'repeat-match' failed."

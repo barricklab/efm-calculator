@@ -116,9 +116,7 @@ def process_efm_cli(fasta_filepath, features, my_seq, org, check_features, title
     :param title: title of the CSV obtained from file name
     :return: A dictionary to be processed into a CSV
     """
-    # Define the paths for your input file
-    input_file = fasta_filepath
-
+   
     return process_helper(fasta_filepath, features, my_seq, org, check_features, title)
 
 
@@ -135,11 +133,9 @@ def main():
     default_output = "output/"
     # Define error strings
     ERR_NO_FILE = "No file(s) specified."
-    ERR_SPEC_ORG = "Must specify organism if using FASTA file."
     ERR_NO_ACCESS = "Cannot access path:"
     parser = argparse.ArgumentParser()
     parser.add_argument('file', type=str, help="file or path containing sequence(s) to analyze")
-    #parser.add_argument('--format', type=str, help="specify format of sequence file(s)")
     parser.add_argument('--organism', choices=['ecoli', 'reca', 'yeast'], help="specify organism")
     parser.add_argument('--output', type=str, help="directory to store output in")
     args = parser.parse_args()
