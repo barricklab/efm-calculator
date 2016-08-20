@@ -18,7 +18,7 @@
 
         <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
 		<link href="{% static 'efm/styles.css' %}" rel="stylesheet" type="text/css" media="all" />
-		
+
 		<script>
 
             // Let's generate our CSV...
@@ -122,11 +122,11 @@
 					var ssr_lane = ssr_track.addLane();
 
                     {% for entry in repeats %}
-					
+
 					{% if entry.type == 'rmd' %}
 					var color = getRateColor({{ entry.raw_rate }});
 					lane = rmd_track.addLane();
-						
+
                     {% for pos in entry.location %}
                     var repeat = lane.addFeature( new BlockArrow('rmd', {{ pos }}, {{ entry.length.0 }}, '+'));
 					repeat.color = color;
@@ -134,7 +134,7 @@
 					repeat.borderColor = 'white';
 					repeat.borderWidth = 2;
                     {% endfor %}
-					
+
                     var line = lane.addFeature(new Line( 'rmd', {{ entry.location|first }}, ({{ entry.location|last }} - {{ entry.location|first }}) ));
                     line.color = color;
 
@@ -152,7 +152,7 @@
 
 					ssr.addDrawHook(function(feature){ return setMinGlyphSize(feature, 10); });
 					{% endif %}
-					
+
                     {% endfor %}
 
 					// Draw Chart
@@ -161,7 +161,7 @@
 
 			}
 
-			
+
 
 		</script>
       </head>
@@ -198,7 +198,7 @@
                         <td>{{ entry.length.0 }}</td>
                         <td>{{ entry.sequence|default:'&mdash;' }}</td>
                         <td>{{ entry.count }}</td>
-                        <td>{% if entry.type = 'rmd' %}Repeat mediated deletion{% else %}Simple sequence repeat{% endif %}</td>
+                        <td>{% if entry.type == 'rmd' %}Repeat mediated deletion{% else %}Simple sequence repeat{% endif %}</td>
                         <td>{{ entry.raw_rate|stringformat:'.2E' }}</td>
                     </tr>
                     {% endfor %}
@@ -238,4 +238,3 @@
 	   </body>
 
     </html>
-
