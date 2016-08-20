@@ -21,10 +21,10 @@
 
 		<script>
 
-            // Let's generate our CSV...
+            // Let's generate our TSV...
             $(document).ready(function () {
 
-                function exportTableToCSV($table, filename) {
+                function exportTableToTSV($table, filename) {
 
                     var $rows = $table.find('tr'),
 
@@ -34,11 +34,11 @@
                         tmpRowDelim = String.fromCharCode(0), // null character
 
                         // actual delimiter characters for CSV format
-                        colDelim = ',',
+                        colDelim = '\t',
                         rowDelim = '\r\n',
 
                         // Grab text from table into CSV formatted string
-                        csv = 'Name, {{ title }}, RIP score, {{ rate|floatformat }},,\r\n'+$rows.map(function (i, row) {
+                        tsv = 'Name\t{{ title }}\tRIP score\t{{ rate|floatformat }}\t\t\r\n'+$rows.map(function (i, row) {
                             var $row = $(row),
                                 $cols = $row.find('td,th');
 
@@ -55,12 +55,12 @@
                             .split(tmpColDelim).join(colDelim),
 
                         // Data URI
-                        csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+                        tsvData = 'data:application/tsv;charset=utf-8,' + encodeURIComponent(tsv);
 
                     $(this)
                         .attr({
                         'download': filename,
-                            'href': csvData,
+                            'href': tsvData,
                             'target': '_blank'
                     });
                 }
@@ -68,7 +68,7 @@
                 // This must be a hyperlink
                 $(".export").on('click', function (event) {
                     // CSV
-                    exportTableToCSV.apply(this, [$('#mytable'), 'export.csv']);
+                    exportTableToTSV.apply(this, [$('#mytable'), 'export.tsv']);
 
                     // IF CSV, don't do event.preventDefault() or return false
                     // We actually need this to be a typical hyperlink
@@ -174,7 +174,7 @@
 			<p class="note">*(Lower is more stable.)</p>
             <div id="csv-button">
 				<div><a href="{% url 'efm:index' %}">&larr; New Sequence</a></div>
-				<div><a href="#" class="export">Download CSV</a></div>
+				<div><a href="#" class="export">Download TSV</a></div>
                 <div><a href="https://github.com/barricklab/efm-calculator/wiki" target="_blank">Help</a></div>
 			</div>
             {% if repeats != '' %}
