@@ -135,21 +135,21 @@ def main():
     ERR_NO_FILE = "No file(s) specified."
     ERR_NO_ACCESS = "Cannot access path:"
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str, help="file or path containing sequence(s) to analyze")
-    parser.add_argument('--organism', choices=['ecoli', 'reca', 'yeast'], help="specify organism")
-    parser.add_argument('--output', type=str, help="directory to store output in")
+    parser.add_argument('-i', '--input', type=str, help="file or path containing sequence(s) to analyze")
+    parser.add_argument('-g', '--organism', choices=['ecoli', 'reca', 'yeast'], help="specify organism")
+    parser.add_argument('-o', '--output', type=str, help="directory to store output in")
     args = parser.parse_args()
 
     # Enforce constraints on input
     organism = ""
     output_dir = default_output
 
-    if not args.file:
+    if not args.input:
         print "ERROR:", ERR_NO_FILE
         return
 
-    if not(os.access(args.file, os.R_OK)):
-        print "ERROR:", ERR_NO_ACCESS, args.file
+    if not(os.access(args.input, os.R_OK)):
+        print "ERROR:", ERR_NO_ACCESS, args.input
         return
 
     if not args.organism:
@@ -166,12 +166,12 @@ def main():
         os.mkdir(output_dir)
 
     # Process a single file
-    if not (os.path.isdir(args.file)):
-        d = process_file(args.file, organism)
+    if not (os.path.isdir(args.input)):
+        d = process_file(args.input, organism)
         print_output(d, output_dir)
 
     else:
-        d = process_dir(args.file, organism)
+        d = process_dir(args.input, organism)
         for item in d:
             print_output(item, output_dir)
 
