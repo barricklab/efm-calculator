@@ -9,7 +9,9 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from tempfile import NamedTemporaryFile
 import os
-from efm_helper import *
+#from efm_helper import *
+
+from efm.efm_helper import *
 
 # Create your views here.
 class SeqForm(forms.Form):
@@ -27,7 +29,7 @@ class SeqForm(forms.Form):
     check_features = forms.BooleanField(label='Annotated Regions Only', required=False)
     check_features.help_text = 'Only assign rates for hypermutable sites that overlap ' \
                                'with annotated regions. Sequence must be annotated.'
-
+ 
     def clean(self):
         '''
         This is where we detect what type of sequence has been uploaded or placed in in the textbox.
@@ -51,7 +53,7 @@ class SeqForm(forms.Form):
                 raise forms.ValidationError('File size is too large.')
         elif sequence:
             with NamedTemporaryFile(delete=False) as data_file:
-                data_file.write(sequence.strip())
+                data_file.write(sequence.strip().encode(encoding='UTF-8'))
 
         del cleaned_data['sequence']
         del cleaned_data['sequence_file']

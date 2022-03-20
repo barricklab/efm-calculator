@@ -5,7 +5,7 @@
            {% if GOOGLE_ANALYTICS_PROPERTY_ID %}
               {% include "efm/ga.html" %}
            {% endif %}
-       {% load staticfiles %}
+       {% load static %}
         <meta charset="utf-8">
         <meta http-equiv="Content-Type" content="text/html">
         <title>EFM Calculator</title>
@@ -173,7 +173,7 @@
 			<h2>RIP score: {{ rate.rip|floatformat }}*</h2>
 			<p class="note">*(Lower is more stable.)</p>
             <div id="csv-button">
-				<div><a href="{% url 'efm:index' %}">&larr; New Sequence</a></div>
+				<div><a href="{% url 'index' %}">&larr; New Sequence</a></div>
 				<div><a href="#" class="export">Download CSV</a></div>
                 <div><a href="https://github.com/barricklab/efm-calculator/wiki" target="_blank">Help</a></div>
 			</div>
@@ -198,7 +198,7 @@
                         <td>{{ entry.length.0 }}</td>
                         <td>{{ entry.sequence|default:'&mdash;' }}</td>
                         <td>{{ entry.count }}</td>
-                        <td>{% if entry.type = 'rmd' %}Repeat mediated deletion{% else %}Simple sequence repeat{% endif %}</td>
+                        <td>{% if entry.type == 'rmd' %}Repeat mediated deletion{% else %}Simple sequence repeat{% endif %}</td>
                         <td>{{ entry.raw_rate|stringformat:'.2E' }}</td>
                     </tr>
                     {% endfor %}
